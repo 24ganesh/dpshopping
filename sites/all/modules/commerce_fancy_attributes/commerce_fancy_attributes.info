@@ -1,0 +1,13 @@
+name = "Commerce fancy attributes"
+core = "7.x"
+description = Provides better-looking attribute selectors for the add to cart form.
+package = Commerce (contrib)
+dependencies[] = taxonomy
+dependencies[] = commerce_cart
+
+; Information added by Drupal.org packaging script on 2014-01-20
+version = "7.x-1.0+2-dev"
+core = "7.x"
+project = "commerce_fancy_attributes"
+datestamp = "1390229486"
+
