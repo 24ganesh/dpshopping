@@ -8,9 +8,14 @@
   margin-left: 4px;
   padding-left: 4px;
   padding-top: 4px;
+  border : 1px solid #e6e6e6;
   text-align: center;
 }
 
+
+  .field-items {
+    display: flex;
+}
 .display-price {
   clear: right;
   float: right;

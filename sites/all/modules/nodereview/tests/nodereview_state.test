@@ -1,0 +1,35 @@
+<?php
+
+/**
+ * @file
+ * Tests for the Nodereview module
+ */
+
+/**
+ * Creates a registration type
+ * Create node entity type
+ * ensure registration type exists
+ */
+class NodereviewStateTest extends DrupalWebTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => 'Nodereview State',
+      'description' => 'Test the Nodereview States.',
+      'group' => 'Nodereview',
+    );
+  }
+
+  function setUp() {
+    parent::setUp(array('nodereview'));
+  }
+
+  function testNodereviewDefaultStates() {
+    $default_states = array('published', 'pending', 'unpublished');
+    $states = entity_load('nodereview_state');
+    $this->assertTrue((!empty($states) && count($states) == 3), t('Nodereview states found'), 'Nodereview');
+    foreach ($states as $state) {
+      $this->assertTrue(in_array($state->name, $default_states),
+      t('Default @state found', array('@state' => $state->name, 'Nodereview')));
+    }
+  }
+}

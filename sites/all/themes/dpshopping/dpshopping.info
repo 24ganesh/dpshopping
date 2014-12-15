@@ -8,6 +8,7 @@ base theme = bootstrap
 ;; Regions
 ;;;;;;;;;;;;;;;;;;;;;
 
+regions[featured]       = 'Featured'
 regions[navigation]     = 'Navigation'
 regions[header]         = 'Top Bar'
 regions[highlighted]    = 'Highlighted'
@@ -15,16 +16,22 @@ regions[help]           = 'Help'
 regions[content]        = 'Content'
 regions[sidebar_first]  = 'Primary'
 regions[sidebar_second] = 'Secondary'
+regions[news_bottom]    = 'News Block'
 regions[footer]         = 'Footer'
-regions[page_top]       = 'Page top'
-regions[page_bottom]    = 'Page bottom'
+regions[footer_first]   = 'First Bottom'
+regions[footer_second]  = 'Second Bottom'
+regions[footer_third]   = 'Third Bottom'
+regions[footer_four]    = 'Four Bottom'
 
+header[] = logo;
 
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Stylesheets
 ;;;;;;;;;;;;;;;;;;;;;
 
-stylesheets[all][] = css/style.css
+stylesheets[all][] = less/style.less
+;stylesheets[all][] = css/style.css
+
 
 
 ; For information on choosing the desired method, please read the Drupal
@@ -38,7 +45,9 @@ stylesheets[all][] = css/style.css
 ; ;;;;;;;;;;;;;;;;;;;;;
 ; ;; Scripts
 ; ;;;;;;;;;;;;;;;;;;;;;
-; 
+
+
+
 ; scripts[] = 'bootstrap/js/affix.js'
 ; scripts[] = 'bootstrap/js/alert.js'
 ; scripts[] = 'bootstrap/js/button.js'

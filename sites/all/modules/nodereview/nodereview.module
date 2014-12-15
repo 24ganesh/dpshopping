@@ -1,0 +1,342 @@
+<?php
+
+/**
+ * Implements hook_permission().
+ */
+function nodereview_permission() {
+  $permissions = array(
+    'administer nodreview types' => array(
+      'title' => t('Administer nodereview types'),
+      'description' => t('Manage nodereview types, fields, and display settings.'),
+      'restrict access' => TRUE,
+    ),
+    'administer nodereview states' => array(
+      'title' => t('Administer nodereview states'),
+      'description' => t('Manage nodereview states, fields, and display settings.'),
+      'restrict access' => TRUE,
+    ),
+    'administer nodereview' => array(
+      'title' => t('Administer nodereview'),
+      'description' => t('View, edit, delete, and manage all nodereviews, regardless of type.'),
+      'restrict access' => TRUE,
+    ),
+  );
+
+  foreach (nodereview_get_types() as $type_info) {
+    $permissions += nodereview_permission_list($type_info);
+  }
+
+  return $permissions;
+}
+
+/**
+ * Builds permissions for a nodereview type.
+ *
+ * @param object $info
+ *   Information about a nodereview type.
+ *
+ * @return array
+ *   An array of permission names and descriptions keyed by permission name.
+ */
+function nodereview_permission_list($info) {
+  $type = $info->name;
+  $label = $info->label;
+
+  return array(
+    "administer $type nodereview" => array(
+      'title' => t('%type_name: Administer settings', array('%type_name' => $label)),
+      'description' => t('Allow changing nodereview settings for all entities of this type.'),
+    ),
+    "administer own $typen nodereview" => array(
+      'title' => t('%type_name: Administer own settings', array('%type_name' => $label)),
+      'description' => t('Allow changing nodereview settings for entities which a user has edit access.'),
+    ),
+    "view $type nodereview" => array(
+      'title' => t('%type_name: View all nodereviews', array('%type_name' => $label)),
+    ),
+    "view own $type nodereview" => array(
+      'title' => t('%type_name: View own nodereviews', array('%type_name' => $label)),
+    ),
+    "create $type nodereview" => array(
+      'title' => t('%type_name: Create new nodereview', array('%type_name' => $label)),
+    ),
+    "update own $type nodereview" => array(
+      'title' => t('%type_name: Edit own nodereviews', array('%type_name' => $label)),
+    ),
+    "update any $type nodereview" => array(
+      'title' => t('%type_name: Edit any nodereviews', array('%type_name' => $label)),
+    ),
+    "delete own $type nodereview" => array(
+      'title' => t('%type_name: Delete own nodereviews', array('%type_name' => $label)),
+    ),
+    "delete any $type nodereview" => array(
+      'title' => t('%type_name: Delete any nodereviews', array('%type_name' => $label)),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function nodereview_menu() {
+  $items = array();
+
+  $items['admin/structure/nodereview'] = array(
+    'title' => 'Node Review',
+    'description' => 'Administer Node Review items, such as types, etc.',
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array('administer node review'),
+    'file' => 'system.admin.inc',
+    'file path' => drupal_get_path('module', 'system'),
+  );
+
+  $items['nodereview/%nodereview'] = array(
+    'title callback' => 'nodereview_page_title',
+    'title arguments' => array(1),
+    'page callback' => 'nodereview_view',
+    'page arguments' => array(1),
+    'access callback' => 'entity_access',
+    'access arguments' => array('view', 'nodereview', 1),
+  );
+
+  $items['nodereview/%nodereview/view'] = array(
+    'title' => 'View',
+    'page callback' => 'nodereview_view',
+    'page arguments' => array(1),
+    'access callback' => 'entity_access',
+    'access arguments' => array('view', 'nodereview', 1),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+
+  $items['nodereview/%nodereview/edit'] = array(
+    'title' => 'Edit',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('nodereview_form', 1),
+    'access callback' => 'entity_access',
+    'access arguments' => array('update', 'nodereview', 1),
+    'weight' => 10,
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  $items['nodereview/%nodereview/delete'] = array(
+    'title' => 'Delete',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('nodereview_delete_confirm', 1),
+    'access callback' => 'entity_access',
+    'access arguments' => array('delete', 'nodereview', 1),
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**function nodereview_menu() {
+
+  $items['admin/structure/nodereviews'] = array(
+    'title' => 'Node Review',
+    'description' => 'Manage nodereviews.',
+    'page callback' => 'nodereview_overview_types',
+    'access arguments' => array('administer nodereviews'),
+  );
+
+  $items['admin/structure/nodereviews/manage/%nodereview_type'] = array(
+    'title' => 'View nodereview type',
+    'title callback' => 'nodereview_type_page_title',
+    'title arguments' => array(4),
+    'page callback' => 'nodereview_information',
+    'page arguments' => array(4),
+    'access arguments' => array('administer nodereviews'),
+  );
+
+  $items['admin/structure/nodereviews/manage/%nodereview_type/view'] = array(
+    'title' => 'View',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+
+  return $items;
+}
+
+/**
+ * Load a specific nodereview entity.
+ *
+ * @type
+ * Type of noderview entity to load.
+ *
+ * @return
+ * Nodereview entity type object or false if none exist.
+ */
+
+/**
+ * Implements hook_entity_info().
+ */
+function nodereview_entity_info() {
+  $return = array(
+    'nodereview' => array(
+      'label' => t('Nodereview'),
+      'controller class' => 'NodereviewController',
+      'base table' => 'nodereview',
+      //TODO: 'revision table' => 'nodereview_revision',
+      'uri callback' => 'nodereview_uri',
+      'fieldable' => TRUE,
+      'entity keys' => array(
+        'id' => 'nrid',
+        'revision' => 'vid',
+        'bundle' => 'type',
+        'label' => 'title',
+      ),
+      'bundle keys' => array(
+        'bundle' => 'type',
+      ),
+      'static cache' => TRUE,
+      'bundles' => array(),
+      'view modes' => array(
+        'full' => array(
+          'label' => t('Full Content'),
+          'custom settings' => FALSE,
+        ),
+        'teaser' => array(
+          'label' => t('Teaser'),
+          'custom settings' => FALSE,
+        ),
+      ),
+    ),
+    'nodereview_type' => array(
+      'label' => t('Node Review type'),
+      'entity class' => 'NodereviewType',
+      'controller class' => 'EntityAPIControllerExportable',
+      'base table' => 'nodereview_type',
+      'fieldable' => FALSE,
+      'bundle of' => 'nodereview',
+      'exportable' => TRUE,
+      'entity keys' => array(
+        'id' => 'id',
+        'name' => 'name',
+        'label' => 'label',
+      ),
+      'access callback' => 'nodereview_type_access',
+      'module' => 'nodereview',
+      // Enable the entity API's admin UI.
+      'admin ui' => array(
+        'path' => 'admin/structure/nodereview/nodereview_types',
+        'file' => 'nodereview_type.admin.inc',
+        'file path' => drupal_get_path('module', 'nodereview') . '/includes',
+        'controller class' => 'NodereviewTypeUIController',
+      ),
+      'entity cache' => module_exists('entitycache'),
+    ),
+    'nodereview_state' => array(
+      'label' => t('Nodereview State'),
+      'plural label' => t('Nodereview states'),
+      'controller class' => 'NodereviewStateController',
+      'entity class' => 'NodereviewState',
+      'base table' => 'nodereview_state',
+      'fieldable' => FALSE,
+      'entity keys' => array(
+        'id' => 'nodereview_state_id',
+        'label' => 'label',
+        'name' => 'name',
+      ),
+      'bundles' => array(
+        'nodereview_state' => array(
+          'label' => 'Nodereview States',
+        ),
+      ),
+      'admin ui' => array(
+        'path' => 'admin/structure/nodereview/nodereview_states',
+        'file' => 'nodereview.forms.inc',
+        'file path' => drupal_get_path('module', 'nodereview') . '/includes',
+        'controller class' => 'NodereviewStatesUIController',
+      ),
+      'token type' => 'nodereview_state',
+      'module' => 'nodereview',
+      'access callback' => 'nodereview_state_access',
+      'exportable' => TRUE,
+      'entity cache' => module_exists('entitycache'),
+    ),
+  );
+
+  return $return;
+}
+
+/**
+ * TODO: IMPLEMENT FROM HOOK_MENU()
+ *
+ * Generate a node review title based on the $nrid
+ *
+ * @param $nrid
+ *  Entity ID for a node review
+ *
+ * @return
+ *  String title of the node review
+ */
+function nodereview_page_title($nrid) {
+
+}
+
+/**
+ * TODO: IMPLEMENT FROM HOOK_MENU()
+ *
+ * @param $nrid
+ *  Entity ID for a node review
+ */
+function nodereview_view($nrid) {
+
+}
+
+/**
+ * TODO: IMPLEMENT FROM HOOK_MENU()
+ *
+ * @param $nrid
+ *  Nodereview ID.
+ */
+function nodereview_form($nrid) {
+
+}
+
+/**
+ * TODO: IMPLEMENT FROM HOOK_MENU()
+ *
+ * @param $nrid
+ *  Nodereview ID.
+ */
+function nodereview_delete_confirm($nrid) {
+
+}
+
+/**
+ * Menu argument loader; Load a nodereview type by string.
+ *
+ * @param $type
+ *   The machine-readable name of a nodereview type to load.
+ *
+ * @return
+ *   A nodereview type array or FALSE if $type does not exist.
+ */
+function nodereview_type_load($type) {
+  return nodereview_get_types($type);
+}
+
+/**
+ * Gets an array of all nodereview types, keyed by the name.
+ *
+ * @param $name
+ *   If set, the type with the given name is returned.
+ */
+function nodereview_get_types($name = NULL) {
+  $types = entity_load_multiple_by_name('nodereview_type', isset($name) ? array($name) : FALSE);
+  return isset($name) ? reset($types) : $types;
+}
+
+/**
+ * Access callback for the entity API.
+ */
+function nodereview_type_access($op, $entity = NULL, $account = NULL, $entity_type = NULL) {
+  return user_access('administer nodereview types', $account);
+}
+
+/**
+ * Access callback for the entity API.
+ */
+function nodereview_state_access($op, $entity = NULL, $account = NULL, $entity_type = NULL) {
+  return user_access('administer nodereview states', $account);
+}

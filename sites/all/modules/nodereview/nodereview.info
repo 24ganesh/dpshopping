@@ -1,0 +1,20 @@
+name = Nodereview
+description = Provides Nodereview entities that can be attached to any entity.
+package = Nodereview
+core = 7.x
+files[] = tests/nodereview_state.test
+files[] = includes/nodereview.controller.inc
+files[] = includes/nodereview_state.controller.inc
+files[] = includes/nodereview_state.entity.inc
+files[] = includes/nodereview_state.ui_controller.inc
+files[] = includes/nodereview_type.entity.inc
+files[] = includes/nodereview_type.ui_controller.inc
+dependencies[] = entity
+dependencies[] = entity_bundle_plugin
+
+; Information added by Drupal.org packaging script on 2014-11-12
+version = "7.x-2.x-dev"
+core = "7.x"
+project = "nodereview"
+datestamp = "1415795583"
+

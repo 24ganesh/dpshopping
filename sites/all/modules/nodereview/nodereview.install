@@ -1,0 +1,374 @@
+<?php
+/**
+ * @file
+ * Install file for nodereview module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function nodereview_schema() {
+  $schema['nodereview'] = array(
+    'description' => 'The base table for nodereview module.',
+    'fields' => array(
+      'nodereview_id' => array(
+        'description' => 'The primary identifier for a nodereview.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'type' => array(
+        'description' => 'The {nodereview_type}.type of this registration.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'entity_id' => array(
+        'description' => 'The id of the entity this nodereview is associated with.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'entity_type' => array(
+        'description' => 'The entity type of the entity this nodereview is associated with.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'user_uid' => array(
+        'description' => 'The uid of the entity author associated with this nodereview.',
+        'type' => 'int',
+        'not null' => FALSE,
+        'default' => 0,
+      ),
+      'author_uid' => array(
+        'description' => 'The uid of the user who created this nodereview.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'state' => array(
+        'description' => 'The {nodereview_state}.name of this nodereview.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'created' => array(
+        'description' => 'The Unix timestamp when the nodereview was created.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'updated' => array(
+        'description' => 'The Unix timestamp when the nodereview was most recently saved.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'indexes' => array(
+      'nodereview_updated' => array('updated'),
+      'nodereview_created' => array('created'),
+      'nodereview_type' => array(array('type', 4)),
+      'nodereview_state' => array('state'),
+    ),
+    'foreign keys' => array(
+      'nodereview_author' => array(
+        'table' => 'users',
+        'columns' => array('author_uid' => 'uid'),
+      ),
+      'nodereview_user' => array(
+        'table' => 'users',
+        'columns' => array('user_uid' => 'uid'),
+      ),
+      'nodereview_state' => array(
+        'table' => 'nodereview_state',
+        'columns' => array('state' => 'name'),
+      ),
+    ),
+    'primary key' => array('nodereview_id'),
+  );
+
+  $schema['nodereview_entity'] = array(
+    'description' => 'Nodereview per-entity settings.',
+    'fields' => array(
+      'entity_id' => array(
+        'description' => 'Entity id these nodereview settings are for.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'entity_type' => array(
+        'description' => 'The entity type of the entity these nodereview settings are for.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'state' => array(
+        'description' => 'Default state of the nodereview entitys created of this type.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+      'settings' => array(
+        'type' => 'blob',
+        'not null' => TRUE,
+        'size' => 'big',
+        'serialize' => TRUE,
+        'description' => 'A serialized object that stores additional registration settings.',
+      ),
+    ),
+    'primary key' => array('entity_id', 'entity_type'),
+  );
+
+  $schema['nodereview_type'] = array(
+    'description' => 'Stores information about all defined nodereview types.',
+    'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique nodereview type ID.',
+      ),
+      'name' => array(
+        'description' => 'The machine-readable name of this nodereview type.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+      ),
+      'label' => array(
+        'description' => 'The human-readable name of this nodereview type.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'weight' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+        'description' => 'The weight of this nodereview type in relation to others.',
+      ),
+      'locked' => array(
+        'description' => 'A boolean indicating whether the administrator may delete this type.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+      ),
+      'data' => array(
+        'type' => 'text',
+        'not null' => FALSE,
+        'size' => 'big',
+        'serialize' => TRUE,
+        'description' => 'A serialized array of additional data related to this entity_test type.',
+        'merge' => TRUE,
+      ),
+      'status' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        // Set the default to ENTITY_CUSTOM without using the constant as it is
+        // not safe to use it at this point.
+        'default' => 0x01,
+        'size' => 'tiny',
+        'description' => 'The exportable status of the entity.',
+      ),
+      'module' => array(
+        'description' => 'The name of the providing module if the entity has been defined in code.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('id'),
+    'unique keys' => array(
+      'name' => array('name'),
+    ),
+  );
+
+  $schema['nodereview_state'] = array(
+    'description' => 'Stores nodereview states configuration.',
+    'fields' => array(
+      'nodereview_state_id' => array(
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'The nodereview state ID.',
+      ),
+      'name' => array(
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'description' => 'The machine name of the nodereview state.',
+      ),
+      'label' => array(
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'description' => 'The human readable name of the nodereview state.',
+      ),
+      'description' => array(
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => FALSE,
+        'description' => 'The description of the nodereview state.',
+      ),
+      'default_state' => array(
+        'description' => 'A boolean indicating default nodereview state.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+      ),
+      'active' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+        'description' => 'A flag showing active nodereview states.',
+      ),
+      'show_on_form' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+        'description' => 'A flag showing if this nodereview state should be shown on the nodereview creation form.',
+      ),
+      'weight' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'The weight of this nodereview state in the UI',
+      ),
+      'status' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        // Set the default to ENTITY_CUSTOM without using the constant as it is
+        // not safe to use it at this point.
+        'default' => 0x01,
+        'size' => 'tiny',
+        'description' => 'The exportable status of the entity.',
+      ),
+      'module' => array(
+        'description' => 'The name of the providing module if the entity has been defined in code.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+    ),
+    'indexes' => array(
+      'nodereview_state_name' => array('name'),
+      'nodereview_state_default_state' => array('default_state'),
+    ),
+    'primary key' => array('nodereview_state_id'),
+    'unique keys' => array(
+      'name' => array('name'),
+    ),
+  );
+
+  // Create cache bins for Entity-cache module.
+  $cache_schema = drupal_get_schema_unprocessed('system', 'cache');
+  $types = array(
+    'nodereview',
+    'nodereview_type',
+    'nodereview_state',
+  );
+
+  foreach ($types as $type) {
+    $schema["cache_entity_$type"] = $cache_schema;
+    $schema["cache_entity_$type"]['description'] = "Cache table used to store $type entity records.";
+  }
+
+  return $schema;
+}
+
+/**
+ * Implements hook_field_schema().
+ */
+function nodereview_field_schema($field) {
+  $columns = array(
+    'nodereview_type' => array(
+      'type' => 'varchar',
+      'length' => 32,
+      'not null' => FALSE,
+    ),
+  );
+  $indexes = array(
+    'nodereview_type' => array('nodereview_type'),
+  );
+  $foreign_keys = array(
+    'nodereview_type' => array(
+      'table' => 'nodereview_type',
+      'columns' => array('nodereview_type' => 'name'),
+    ),
+  );
+  return array(
+    'columns' => $columns,
+    'indexes' => $indexes,
+    'foreign keys' => $foreign_keys,
+  );
+}
+
+/**
+ * Implements hook_install().
+ */
+function nodereview_install() {
+  // Create default states.
+  $states = array(
+    'published' => array(
+      'label' => 'Published',
+      'description' => 'Nodereview has been published.',
+      'default_state' => 1,
+      'active' => 1,
+      'show_on_form' => 0,
+      'weight' => 1,
+    ),
+    'pending' => array(
+      'label' => 'Pending',
+      'description' => 'Nodereview is pending.',
+      'default_state' => 0,
+      'active' => 0,
+      'show_on_form' => 0,
+      'weight' => 1,
+    ),
+    'unpublished' => array(
+      'label' => 'Unpublished',
+      'description' => 'Nodereview was cancelled',
+      'default_state' => 0,
+      'active' => 0,
+      'show_on_form' => 0,
+      'weight' => 1,
+    ),
+  );
+
+  foreach ($states as $state_name => $state_label) {
+    $nodereview_state = entity_create('nodereview_state',
+      array(
+        'name' => $state_name,
+        'label' => $state_label['label'],
+        'description' => $state_label['description'],
+        'default_state' => $state_label['default_state'],
+        'active' => $state_label['active'],
+        'show_on_form' => $state_label['show_on_form'],
+        'weight' => $state_label['weight'],
+      )
+    );
+    $nodereview_state->save();
+  }
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function nodereview_uninstall() {
+  // Remove default states.
+  $default_states = array(
+    'published', 'pending', 'unpublished',
+  );
+  db_delete('nodereview_state')
+    ->condition('name', $default_states, 'IN')
+    ->execute();
+}
